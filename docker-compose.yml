@@ -1,0 +1,15 @@
+version: "3"
+services:
+  wildfly_gate:
+    build:
+        context: .
+        args:
+          WILDFLY_USER: $WILDFLY_USER
+          WILDFLY_PASS: $WILDFLY_PASS
+          DB_USER: $DB_USER
+          DB_PASS: $DB_PASS
+    container_name: "wildfly_gate"
+    ports:
+      - '8080:8080'
+      - '9990:9990'
+      
