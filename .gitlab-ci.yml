@@ -43,5 +43,5 @@ deploy:
    - package
  image: jboss/wildfly
  script:
-   - /opt/jboss/wildfly/bin/jboss-cli.sh --connect --controller=${HOST_WILDFLY} --user=${USER_WILDFLY} --password=${PASS_WILDFLY} --commands="deploy target/*.war --force"
+   - /opt/jboss/wildfly/bin/jboss-cli.sh --connect --controller=${HOST_WILDFLY} --user=${USER_WILDFLY} --password=${PASS_WILDFLY} --commands="deploy target/app.war --force"
 
