@@ -6,10 +6,11 @@ ARG WILDFLY_USER=admin
 ARG WILDFLY_PASS=password
 
 # Database
-ENV DB_NAME gate
+ARG DB_NAME=gate
 ARG DB_USER=db_user
 ARG DB_PASS=db_password
-ENV DB_URI 10.70.61.179:3306
+ARG DB_URI=10.70.61.179:3306
+ARG FILE
 
 ENV MYSQL_VERSION 8.0.14
 ENV JBOSS_CLI /opt/jboss/wildfly/bin/jboss-cli.sh
@@ -17,7 +18,7 @@ ENV DEPLOYMENT_DIR /opt/jboss/wildfly/standalone/deployments/
 #ENV JAVA_OPTS
 
 # Copy application to Deployment Folder
-COPY gate-7.11.0.war $DEPLOYMENT_DIR
+COPY $FILE $DEPLOYMENT_DIR
 
 # Setting up WildFly Admin Console
 RUN echo "=> Adding WildFly administrator"
