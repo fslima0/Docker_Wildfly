@@ -10,8 +10,8 @@ ARG DB_NAME=gate
 ARG DB_USER=db_user
 ARG DB_PASS=db_password
 ARG DB_URI=10.70.61.179:3306
-ARG FILE
 
+ENV FILE target/*.jar
 ENV MYSQL_VERSION 8.0.14
 ENV JBOSS_CLI /opt/jboss/wildfly/bin/jboss-cli.sh
 ENV DEPLOYMENT_DIR /opt/jboss/wildfly/standalone/deployments/
