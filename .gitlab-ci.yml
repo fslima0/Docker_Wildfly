@@ -2,9 +2,6 @@ image: maven:latest
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
 
 cache:
   paths:
@@ -14,7 +11,12 @@ stages:
  - build
  - test
  - package
- - deploy
+ - release
+ - deploy-to-test
+
+.tests:
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^.*-rc.*$/'
 
 build:
  stage: build
@@ -27,31 +29,39 @@ test:
    - mvn test
 
 package:
+ extends: .tests
  stage: package
- rules:
-   - if: '$CI_COMMIT_TAG =~ /^.*-rc.*$/'
  script:
    - mvn -DskipTests=true package
  artifacts:
    paths:
        - target/*.jar
 
-deploy:
- stage: deploy
- rules:
-   - if: '$CI_COMMIT_TAG =~ /^.*-rc.*$/'
+release:
+ extends: .tests
+ stage: release
  dependencies:
    - build
    - test
    - package
- image: docker:19.03.13
+ image: docker:20.10.7
  services:
-  - docker:19.03.13-dind
+  - docker:20.10.7-dind
  before_script:
-   - docker info
    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
  script:
-   - docker pull $CI_REGISTRY_IMAGE:latest || true
-   - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
-   - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-   - docker push $CI_REGISTRY_IMAGE:latest
+   - docker pull $CI_REGISTRY_IMAGE:rc || true
+   - docker build --cache-from $CI_REGISTRY_IMAGE:rc --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME --tag $CI_REGISTRY_IMAGE:rc .
+   - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+   - docker push $CI_REGISTRY_IMAGE:rc
+
+deploy:
+ extends: .tests
+ stage: deploy-to-test
+ dependencies:
+   - release
+ image: docker:20.10.7
+ services:
+  - docker:20.10.7-dind
+ script:
+   - docker run -d -p 8080:8080 -p 9990:9990 $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
