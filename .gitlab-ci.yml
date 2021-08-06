@@ -21,7 +21,10 @@ stages:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^.*-rc.*$/'
       when: on_success
-    - if: '$CI_COMMIT_BRANCH == "master"'
+
+.tests-branch: &tests-branch
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^.*-rc.*$/ && $CI_COMMIT_BRANCH == "master"'
       when: manual
 
 include:
@@ -84,9 +87,11 @@ deploy_staging:
    - sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER docker run -d -p 8080:8080 -p 9990:9990 --name my-app $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
 
 deploy_production:
- extends: .tests-tag
+ <<: *tests-branch
  stage: deploy
  image: maven:latest
+ dependencies:
+    - package
  environment:
    name: production
    url: http://your_server_IP:8080
